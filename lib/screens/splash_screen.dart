@@ -24,33 +24,37 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     try {
-      // Initialize services
-      final transactionService = Provider.of<TransactionService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
-
-      // Initialize Firebase services
-      await Future.wait([
-        transactionService.initialize(),
-        settingsService.initialize(),
-      ]);
-
-      // Check onboarding status
-      final prefs = await SharedPreferences.getInstance();
-      final bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-
       // Wait a bit to show splash screen
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
-        if (onboardingComplete) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-          );
-        }
+        // Initialize services after the build is complete
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final transactionService = Provider.of<TransactionService>(context, listen: false);
+          final settingsService = Provider.of<SettingsService>(context, listen: false);
+
+          // Initialize services
+          await Future.wait([
+            transactionService.initialize(),
+            settingsService.initialize(),
+          ]);
+
+          // Check onboarding status
+          final prefs = await SharedPreferences.getInstance();
+          final bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+
+          if (mounted) {
+            if (onboardingComplete) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+              );
+            }
+          }
+        });
       }
     } catch (e) {
       // Handle initialization errors

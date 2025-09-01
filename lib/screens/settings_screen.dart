@@ -92,7 +92,7 @@ class SettingsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: isCurrentSymbolInList ? settingsService.currencySymbol : currencies.first['symbol'],
+          initialValue: isCurrentSymbolInList ? settingsService.currencySymbol : currencies.first['symbol'],
           decoration: const InputDecoration(
             prefixIcon: Icon(Icons.currency_rupee),
             border: OutlineInputBorder(),

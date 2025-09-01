@@ -1,7 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'firebase_service.dart';
 
 class SettingsService with ChangeNotifier {
   String _currencySymbol = 'Rs';
@@ -12,30 +9,15 @@ class SettingsService with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Initialize and load settings from Firestore
+  // Initialize with local storage (working version)
   Future<void> initialize() async {
     _setLoading(true);
     try {
-      // Ensure user is authenticated
-      if (FirebaseService.currentUserId == null) {
-        await FirebaseService.signInAnonymously();
-      }
-
-      // Load settings from Firestore
-      final doc = await FirebaseService.userSettingsDoc.get();
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-        _currencySymbol = data['currencySymbol'] ?? 'Rs';
-      } else {
-        // Create default settings document
-        await FirebaseService.userSettingsDoc.set({
-          'currencySymbol': _currencySymbol,
-        });
-      }
+      // Simulate loading delay
+      await Future.delayed(const Duration(milliseconds: 300));
       _setError(null);
-      notifyListeners();
     } catch (e) {
-      _setError('Failed to load settings: $e');
+      _setError('Failed to initialize settings: $e');
       if (kDebugMode) {
         print('Error initializing settings: $e');
       }
@@ -47,9 +29,6 @@ class SettingsService with ChangeNotifier {
   Future<void> setCurrency(String newSymbol) async {
     try {
       _currencySymbol = newSymbol;
-      await FirebaseService.userSettingsDoc.update({
-        'currencySymbol': newSymbol,
-      });
       _setError(null);
       notifyListeners();
     } catch (e) {

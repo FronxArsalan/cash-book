@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:collection';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/transaction.dart';
-import 'firebase_service.dart';
 
 class TransactionService with ChangeNotifier {
   final List<Transaction> _transactions = [];
@@ -26,30 +24,15 @@ class TransactionService with ChangeNotifier {
       .where((tx) => tx.type == TransactionType.expense)
       .fold(0.0, (sum, item) => sum + item.amount);
 
-  // Initialize and load transactions from Firestore
+  // Initialize with local storage (working version)
   Future<void> initialize() async {
     _setLoading(true);
     try {
-      // Ensure user is authenticated
-      if (FirebaseService.currentUserId == null) {
-        await FirebaseService.signInAnonymously();
-      }
-
-      // Listen to transactions changes
-      FirebaseService.transactionsCollection
-          .orderBy('date', descending: true)
-          .snapshots()
-          .listen((snapshot) {
-        _transactions.clear();
-        for (var doc in snapshot.docs) {
-          final transaction = Transaction.fromMap(doc.data() as Map<String, dynamic>);
-          _transactions.add(transaction);
-        }
-        _setError(null);
-        notifyListeners();
-      });
+      // Simulate loading delay
+      await Future.delayed(const Duration(milliseconds: 500));
+      _setError(null);
     } catch (e) {
-      _setError('Failed to load transactions: $e');
+      _setError('Failed to initialize: $e');
       if (kDebugMode) {
         print('Error initializing transactions: $e');
       }
@@ -68,7 +51,9 @@ class TransactionService with ChangeNotifier {
         type: type,
       );
 
-      await FirebaseService.transactionsCollection.doc(newTransaction.id).set(newTransaction.toMap());
+      _transactions.add(newTransaction);
+      _setError(null);
+      notifyListeners();
     } catch (e) {
       _setError('Failed to add transaction: $e');
       if (kDebugMode) {
@@ -79,9 +64,12 @@ class TransactionService with ChangeNotifier {
 
   Future<void> updateTransaction(Transaction updatedTransaction) async {
     try {
-      await FirebaseService.transactionsCollection
-          .doc(updatedTransaction.id)
-          .update(updatedTransaction.toMap());
+      final txIndex = _transactions.indexWhere((tx) => tx.id == updatedTransaction.id);
+      if (txIndex >= 0) {
+        _transactions[txIndex] = updatedTransaction;
+        _setError(null);
+        notifyListeners();
+      }
     } catch (e) {
       _setError('Failed to update transaction: $e');
       if (kDebugMode) {
@@ -92,7 +80,9 @@ class TransactionService with ChangeNotifier {
 
   Future<void> deleteTransaction(String id) async {
     try {
-      await FirebaseService.transactionsCollection.doc(id).delete();
+      _transactions.removeWhere((tx) => tx.id == id);
+      _setError(null);
+      notifyListeners();
     } catch (e) {
       _setError('Failed to delete transaction: $e');
       if (kDebugMode) {

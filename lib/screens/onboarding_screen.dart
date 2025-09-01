@@ -120,12 +120,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     required String subtitle,
   }) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    // Use icons instead of images
+    IconData icon;
+    if (imageAsset.contains('onboarding1')) {
+      icon = Icons.account_balance_wallet;
+    } else if (imageAsset.contains('onboarding2')) {
+      icon = Icons.trending_up;
+    } else {
+      icon = Icons.analytics;
+    }
+    
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Image.asset(imageAsset, height: 250),
+          Container(
+            height: 200,
+            width: 200,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 100,
+              color: colorScheme.primary,
+            ),
+          ),
           const SizedBox(height: 40),
           Text(
             title,

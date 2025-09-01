@@ -41,12 +41,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'your-web-api-key',
-    appId: 'your-web-app-id',
-    messagingSenderId: 'your-sender-id',
-    projectId: 'your-project-id',
-    authDomain: 'your-project-id.firebaseapp.com',
-    storageBucket: 'your-project-id.appspot.com',
+    apiKey: 'AIzaSyDP3AbllI0qnQNRSi4i1-s884dOGfETDxw',
+    appId: '1:449410303802:web:59ee3bc9155c902b1df203',
+    messagingSenderId: '449410303802',
+    projectId: 'cash-book-99e24',
+    authDomain: 'cash-book-99e24.firebaseapp.com',
+    storageBucket: 'cash-book-99e24.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
