@@ -114,15 +114,48 @@ class _TransactionItem extends StatelessWidget {
           ),
           TextButton(
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            onPressed: () {
-              Provider.of<TransactionService>(context, listen: false).deleteTransaction(id);
+            onPressed: () async {
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Transaction deleted.'),
-                  duration: Duration(seconds: 2),
+              
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
                 ),
               );
+
+              try {
+                await Provider.of<TransactionService>(context, listen: false).deleteTransaction(id);
+                
+                // Close loading dialog
+                if (context.mounted) Navigator.of(context).pop();
+                
+                // Show success message
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Transaction deleted.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              } catch (e) {
+                // Close loading dialog
+                if (context.mounted) Navigator.of(context).pop();
+                
+                // Show error message
+                if (context.mounted) {
+                  final transactionService = Provider.of<TransactionService>(context, listen: false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${transactionService.error ?? e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
           ),
         ],

@@ -97,9 +97,28 @@ class SettingsScreen extends StatelessWidget {
             prefixIcon: Icon(Icons.currency_rupee),
             border: OutlineInputBorder(),
           ),
-          onChanged: (String? newSymbol) {
+          onChanged: (String? newSymbol) async {
             if (newSymbol != null) {
-              settingsService.setCurrency(newSymbol);
+              try {
+                await settingsService.setCurrency(newSymbol);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Currency updated successfully'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${settingsService.error ?? e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             }
           },
           items: currencies.map<DropdownMenuItem<String>>((Map<String, String> currency) {

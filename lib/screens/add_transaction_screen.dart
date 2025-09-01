@@ -37,28 +37,58 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
   }
 
-  void _submitData() {
+  void _submitData() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final transactionService = Provider.of<TransactionService>(context, listen: false);
-      if (widget.transaction == null) {
-        transactionService.addTransaction(
-          _title,
-          _amount,
-          _type, 
-          _date,
-        );
-      } else {
-        final updatedTransaction = Transaction(
-          id: widget.transaction!.id,
-          title: _title,
-          amount: _amount,
-          date: _date,
-          type: _type,
-        );
-        transactionService.updateTransaction(updatedTransaction);
+      
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      try {
+        if (widget.transaction == null) {
+          await transactionService.addTransaction(
+            _title,
+            _amount,
+            _type, 
+            _date,
+          );
+        } else {
+          final updatedTransaction = Transaction(
+            id: widget.transaction!.id,
+            title: _title,
+            amount: _amount,
+            date: _date,
+            type: _type,
+          );
+          await transactionService.updateTransaction(updatedTransaction);
+        }
+        
+        // Close loading dialog
+        if (mounted) Navigator.of(context).pop();
+        
+        // Close the form
+        if (mounted) Navigator.of(context).pop();
+      } catch (e) {
+        // Close loading dialog
+        if (mounted) Navigator.of(context).pop();
+        
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${transactionService.error ?? e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
-      Navigator.of(context).pop();
     }
   }
 
