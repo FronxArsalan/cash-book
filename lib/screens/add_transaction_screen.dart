@@ -1,0 +1,191 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
+import '../models/transaction.dart';
+import '../services/transaction_service.dart';
+
+class AddTransactionScreen extends StatefulWidget {
+  final Transaction? transaction;
+
+  const AddTransactionScreen({super.key, this.transaction});
+
+  @override
+  State<AddTransactionScreen> createState() => _AddTransactionScreenState();
+}
+
+class _AddTransactionScreenState extends State<AddTransactionScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late String _title;
+  late double _amount;
+  late DateTime _date;
+  late TransactionType _type;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.transaction != null) {
+      _title = widget.transaction!.title;
+      _amount = widget.transaction!.amount;
+      _date = widget.transaction!.date;
+      _type = widget.transaction!.type;
+    } else {
+      _title = '';
+      _amount = 0.0;
+      _date = DateTime.now();
+      _type = TransactionType.expense;
+    }
+  }
+
+  void _submitData() {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      final transactionService = Provider.of<TransactionService>(context, listen: false);
+      if (widget.transaction == null) {
+        transactionService.addTransaction(
+          _title,
+          _amount,
+          _type, 
+          _date,
+        );
+      } else {
+        final updatedTransaction = Transaction(
+          id: widget.transaction!.id,
+          title: _title,
+          amount: _amount,
+          date: _date,
+          type: _type,
+        );
+        transactionService.updateTransaction(updatedTransaction);
+      }
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _presentDatePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    ).then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _date = pickedDate;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.transaction == null ? 'Add Transaction' : 'Edit Transaction'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              TextFormField(
+                initialValue: _title,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  prefixIcon: Icon(Icons.title),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title.';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  _title = value!;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: _amount == 0.0 ? '' : _amount.toString(),
+                decoration: const InputDecoration(
+                  labelText: 'Amount',
+                  prefixIcon: Icon(Icons.monetization_on_outlined),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount.';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number.';
+                  }
+                  if (double.parse(value) <= 0) {
+                    return 'Please enter a number greater than zero.';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  _amount = double.parse(value!);
+                },
+              ),
+              const SizedBox(height: 24),
+              Text('Transaction Type', style: textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SegmentedButton<TransactionType>(
+                segments: const <ButtonSegment<TransactionType>>[
+                  ButtonSegment(
+                      value: TransactionType.expense,
+                      label: Text('Expense'),
+                      icon: Icon(Icons.arrow_downward)),
+                  ButtonSegment(
+                      value: TransactionType.income,
+                      label: Text('Income'),
+                      icon: Icon(Icons.arrow_upward)),
+                ],
+                selected: {_type},
+                onSelectionChanged: (Set<TransactionType> newSelection) {
+                  setState(() {
+                    _type = newSelection.first;
+                  });
+                },
+                style: SegmentedButton.styleFrom(
+                  fixedSize: const Size.fromHeight(50),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      'Date: ${DateFormat.yMd().format(_date)}',
+                      style: textTheme.bodyLarge,
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.calendar_today),
+                    label: const Text('Choose Date'),
+                    onPressed: _presentDatePicker,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(widget.transaction == null ? 'Add Transaction' : 'Save Changes'),
+                onPressed: _submitData,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
