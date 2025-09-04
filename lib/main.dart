@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/transaction_service.dart';
 import 'services/settings_service.dart';
+import 'services/database_service.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseService.initialize();
   runApp(const MyApp());
 }
 

@@ -34,18 +34,16 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: <Widget>[
           _buildBalanceCard(context, transactionService, settingsService, colorScheme),
-          _buildSummaryCards(context, transactionService, settingsService, colorScheme),
           const Expanded(child: TransactionList()),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (ctx) => const AddTransactionScreen()),
           );
         },
-        label: const Text('Add'),
-        icon: const Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -84,80 +82,59 @@ class HomeScreen extends StatelessWidget {
             '${settingsService.currencySymbol} ${transactionService.balance.toStringAsFixed(2)}',
             style: textTheme.displayMedium?.copyWith(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCards(BuildContext context, TransactionService transactionService, SettingsService settingsService, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: _SummaryCard(
-              title: 'Income',
-              amount: transactionService.totalIncome,
-              currencySymbol: settingsService.currencySymbol,
-              color: Colors.green.shade400,
-              icon: Icons.arrow_upward,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _SummaryCard(
-              title: 'Expense',
-              amount: transactionService.totalExpense,
-              currencySymbol: settingsService.currencySymbol,
-              color: Colors.red.shade400,
-              icon: Icons.arrow_downward,
-            ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildIncomeExpenseItem(
+                'Income',
+                transactionService.totalIncome,
+                settingsService.currencySymbol,
+                Colors.green.shade300,
+                Icons.arrow_upward,
+                textTheme,
+                colorScheme,
+              ),
+              _buildIncomeExpenseItem(
+                'Expense',
+                transactionService.totalExpense,
+                settingsService.currencySymbol,
+                Colors.red.shade300,
+                Icons.arrow_downward,
+                textTheme,
+                colorScheme,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-}
 
-class _SummaryCard extends StatelessWidget {
-  final String title;
-  final double amount;
-  final String currencySymbol;
-  final Color color;
-  final IconData icon;
-
-  const _SummaryCard({
-    required this.title,
-    required this.amount,
-    required this.currencySymbol,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildIncomeExpenseItem(String title, double amount, String currencySymbol, Color color, IconData icon, TextTheme textTheme, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title, style: textTheme.titleMedium),
-                Icon(icon, color: color, size: 28),
-              ],
-            ),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 4),
             Text(
-              '$currencySymbol ${amount.toStringAsFixed(2)}',
-              style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color),
+              title,
+              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary.withOpacity(0.8)),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          '$currencySymbol ${amount.toStringAsFixed(2)}',
+          style: textTheme.titleLarge?.copyWith(
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
+
 }

@@ -54,6 +54,40 @@ class _TransactionItem extends StatelessWidget {
     required this.settingsService,
   });
 
+  IconData _getPaymentMethodIcon(PaymentMethod method) {
+    switch (method) {
+      case PaymentMethod.cash:
+        return Icons.money;
+      case PaymentMethod.online:
+        return Icons.online_prediction;
+      case PaymentMethod.card:
+        return Icons.credit_card;
+      case PaymentMethod.bankTransfer:
+        return Icons.account_balance;
+      case PaymentMethod.upi:
+        return Icons.phone_android;
+      case PaymentMethod.other:
+        return Icons.more_horiz;
+    }
+  }
+
+  String _getPaymentMethodLabel(PaymentMethod method) {
+    switch (method) {
+      case PaymentMethod.cash:
+        return 'Cash';
+      case PaymentMethod.online:
+        return 'Online';
+      case PaymentMethod.card:
+        return 'Card';
+      case PaymentMethod.bankTransfer:
+        return 'Bank Transfer';
+      case PaymentMethod.upi:
+        return 'UPI';
+      case PaymentMethod.other:
+        return 'Other';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isIncome = transaction.type == TransactionType.income;
@@ -71,7 +105,23 @@ class _TransactionItem extends StatelessWidget {
           transaction.title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(DateFormat('MMM d, yyyy').format(transaction.date)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(DateFormat('MMM d, yyyy').format(transaction.date)),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(_getPaymentMethodIcon(transaction.paymentMethod), size: 16, color: Colors.grey.shade600),
+                const SizedBox(width: 4),
+                Text(
+                  _getPaymentMethodLabel(transaction.paymentMethod),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,

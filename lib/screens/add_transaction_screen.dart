@@ -20,6 +20,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   late double _amount;
   late DateTime _date;
   late TransactionType _type;
+  late PaymentMethod _paymentMethod;
 
   @override
   void initState() {
@@ -29,11 +30,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _amount = widget.transaction!.amount;
       _date = widget.transaction!.date;
       _type = widget.transaction!.type;
+      _paymentMethod = widget.transaction!.paymentMethod;
     } else {
       _title = '';
       _amount = 0.0;
       _date = DateTime.now();
       _type = TransactionType.expense;
+      _paymentMethod = PaymentMethod.cash;
     }
   }
 
@@ -58,6 +61,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             _amount,
             _type, 
             _date,
+            _paymentMethod,
           );
         } else {
           final updatedTransaction = Transaction(
@@ -66,6 +70,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             amount: _amount,
             date: _date,
             type: _type,
+            paymentMethod: _paymentMethod,
           );
           await transactionService.updateTransaction(updatedTransaction);
         }
@@ -106,6 +111,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         _date = pickedDate;
       });
     });
+  }
+
+  IconData _getPaymentMethodIcon(PaymentMethod method) {
+    switch (method) {
+      case PaymentMethod.cash:
+        return Icons.money;
+      case PaymentMethod.online:
+        return Icons.online_prediction;
+      case PaymentMethod.card:
+        return Icons.credit_card;
+      case PaymentMethod.bankTransfer:
+        return Icons.account_balance;
+      case PaymentMethod.upi:
+        return Icons.phone_android;
+      case PaymentMethod.other:
+        return Icons.more_horiz;
+    }
+  }
+
+  String _getPaymentMethodLabel(PaymentMethod method) {
+    switch (method) {
+      case PaymentMethod.cash:
+        return 'Cash';
+      case PaymentMethod.online:
+        return 'Online';
+      case PaymentMethod.card:
+        return 'Card';
+      case PaymentMethod.bankTransfer:
+        return 'Bank Transfer';
+      case PaymentMethod.upi:
+        return 'UPI';
+      case PaymentMethod.other:
+        return 'Other';
+    }
   }
 
   @override
@@ -186,6 +225,33 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 style: SegmentedButton.styleFrom(
                   fixedSize: const Size.fromHeight(50),
                 ),
+              ),
+              const SizedBox(height: 24),
+              Text('Payment Method', style: textTheme.titleMedium),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<PaymentMethod>(
+                value: _paymentMethod,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.payment),
+                  border: OutlineInputBorder(),
+                ),
+                items: PaymentMethod.values.map((PaymentMethod method) {
+                  return DropdownMenuItem<PaymentMethod>(
+                    value: method,
+                    child: Row(
+                      children: [
+                        Icon(_getPaymentMethodIcon(method), size: 20),
+                        const SizedBox(width: 8),
+                        Text(_getPaymentMethodLabel(method)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (PaymentMethod? newValue) {
+                  setState(() {
+                    _paymentMethod = newValue!;
+                  });
+                },
               ),
               const SizedBox(height: 24),
               Row(
