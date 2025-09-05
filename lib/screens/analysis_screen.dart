@@ -111,19 +111,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
 
   Widget _buildCategoriesTab(List<Transaction> transactions, SettingsService settingsService) {
     final filteredTransactions = _getFilteredTransactions(transactions);
-    final categoryData = _getCategoryAnalysis(filteredTransactions, settingsService);
-    final paymentMethodData = _getPaymentMethodAnalysis(filteredTransactions, settingsService);
+    final titleData = _getTitleAnalysis(filteredTransactions, settingsService);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCategoryPieChart(categoryData, settingsService),
-          const SizedBox(height: 24),
-          _buildPaymentMethodChart(paymentMethodData, settingsService),
-          const SizedBox(height: 24),
-          _buildCategoryList(categoryData, settingsService),
+          _buildTitleAnalysisList(titleData, settingsService),
         ],
       ),
     );
@@ -233,9 +228,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
               'Income vs Expense',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 26),
             SizedBox(
-              height: 200,
+              height: 250,
               child: PieChart(
                 PieChartData(
                   sections: [
@@ -273,154 +268,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildCategoryPieChart(Map<String, double> categoryData, SettingsService settingsService) {
-    if (categoryData.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Center(
-            child: Text(
-              'No expense data available',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-            ),
-          ),
-        ),
-      );
-    }
 
-    final colors = [
-      Colors.red,
-      Colors.orange,
-      Colors.yellow,
-      Colors.green,
-      Colors.blue,
-      Colors.purple,
-      Colors.pink,
-      Colors.teal,
-    ];
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Expense by Category',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 250,
-              child: PieChart(
-                PieChartData(
-                  sections: categoryData.entries.map((entry) {
-                    final index = categoryData.keys.toList().indexOf(entry.key);
-                    return PieChartSectionData(
-                      value: entry.value,
-                      title: '${entry.key}\n${settingsService.currencySymbol} ${entry.value.toStringAsFixed(0)}',
-                      color: colors[index % colors.length],
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    );
-                  }).toList(),
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 30,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethodChart(Map<String, double> paymentData, SettingsService settingsService) {
-    if (paymentData.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final maxValue = paymentData.values.reduce((a, b) => a > b ? a : b);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Payment Methods',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: maxValue * 1.2,
-                  barTouchData: BarTouchData(enabled: false),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index >= 0 && index < paymentData.keys.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                paymentData.keys.elementAt(index),
-                                style: const TextStyle(fontSize: 10),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }
-                          return const Text('');
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${settingsService.currencySymbol} ${value.toInt()}',
-                            style: const TextStyle(fontSize: 10),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: paymentData.entries.map((entry) {
-                    final index = paymentData.keys.toList().indexOf(entry.key);
-                    return BarChartGroupData(
-                      x: index,
-                      barRods: [
-                        BarChartRodData(
-                          toY: entry.value,
-                          color: Colors.blue,
-                          width: 20,
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildTrendChart(List<DailyData> dailyData, SettingsService settingsService) {
     if (dailyData.isEmpty) {
@@ -437,9 +285,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
       );
     }
 
-    final maxIncome = dailyData.map((d) => d.income).reduce((a, b) => a > b ? a : b);
-    final maxExpense = dailyData.map((d) => d.expense).reduce((a, b) => a > b ? a : b);
-    final maxValue = maxIncome > maxExpense ? maxIncome : maxExpense;
 
     return Card(
       child: Padding(
@@ -590,13 +435,29 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildCategoryList(Map<String, double> categoryData, SettingsService settingsService) {
-    if (categoryData.isEmpty) {
-      return const SizedBox.shrink();
+  Widget _buildTitleAnalysisList(Map<String, double> titleData, SettingsService settingsService) {
+    if (titleData.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Center(
+            child: Text(
+              'No transaction data available',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+            ),
+          ),
+        ),
+      );
     }
 
-    final sortedCategories = categoryData.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    // Calculate total expenses for percentage calculation
+    final totalExpenses = titleData.values.where((amount) => amount < 0).fold(0.0, (sum, amount) => sum + amount.abs());
+    final totalIncome = titleData.values.where((amount) => amount > 0).fold(0.0, (sum, amount) => sum + amount);
+    final totalAmount = totalExpenses + totalIncome;
+
+    // Sort by absolute amount (descending)
+    final sortedTitles = titleData.entries.toList()
+      ..sort((a, b) => b.value.abs().compareTo(a.value.abs()));
 
     return Card(
       child: Padding(
@@ -605,41 +466,76 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Category Breakdown',
+              'Transaction Analysis by Title',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            ...sortedCategories.map((entry) {
-              final percentage = (entry.value / categoryData.values.reduce((a, b) => a + b)) * 100;
+            ...sortedTitles.map((entry) {
+              final percentage = totalAmount > 0 ? (entry.value.abs() / totalAmount) * 100 : 0.0;
+              final isExpense = entry.value < 0;
+              final displayAmount = entry.value.abs();
+              
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        entry.key,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12),
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              entry.key,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '${isExpense ? '-' : '+'}${settingsService.currencySymbol} ${displayAmount.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isExpense ? Colors.red : Colors.green,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: LinearProgressIndicator(
-                        value: percentage / 100,
-                        backgroundColor: Colors.grey[300],
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LinearProgressIndicator(
+                              value: percentage / 100,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isExpense ? Colors.red : Colors.green,
+                              ),
+                              minHeight: 6,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '${percentage.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isExpense ? Colors.red : Colors.green,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        '${settingsService.currencySymbol} ${entry.value.toStringAsFixed(0)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }).toList(),
@@ -648,6 +544,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
       ),
     );
   }
+
 
   Widget _buildTrendInsights(List<DailyData> dailyData, SettingsService settingsService) {
     if (dailyData.isEmpty) {
@@ -984,30 +881,16 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
     );
   }
 
-  Map<String, double> _getCategoryAnalysis(List<Transaction> transactions, SettingsService settingsService) {
-    final expenseTransactions = transactions.where((t) => t.type == TransactionType.expense);
-    final categoryMap = <String, double>{};
-
-    for (final transaction in expenseTransactions) {
-      // For now, we'll use payment method as category
-      // In a real app, you might have a separate category field
-      final category = _getPaymentMethodLabel(transaction.paymentMethod);
-      categoryMap[category] = (categoryMap[category] ?? 0) + transaction.amount;
-    }
-
-    return categoryMap;
-  }
-
-  Map<String, double> _getPaymentMethodAnalysis(List<Transaction> transactions, SettingsService settingsService) {
-    final paymentMap = <String, double>{};
+  Map<String, double> _getTitleAnalysis(List<Transaction> transactions, SettingsService settingsService) {
+    final titleMap = <String, double>{};
 
     for (final transaction in transactions) {
-      final method = _getPaymentMethodLabel(transaction.paymentMethod);
-      paymentMap[method] = (paymentMap[method] ?? 0) + transaction.amount;
+      titleMap[transaction.title] = (titleMap[transaction.title] ?? 0) + transaction.amount;
     }
 
-    return paymentMap;
+    return titleMap;
   }
+
 
   List<DailyData> _getDailyTrends(List<Transaction> transactions, SettingsService settingsService) {
     final Map<DateTime, DailyData> dailyMap = {};
@@ -1030,22 +913,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
     return dailyList;
   }
 
-  String _getPaymentMethodLabel(PaymentMethod method) {
-    switch (method) {
-      case PaymentMethod.cash:
-        return 'Cash';
-      case PaymentMethod.online:
-        return 'Online';
-      case PaymentMethod.card:
-        return 'Card';
-      case PaymentMethod.bankTransfer:
-        return 'Bank Transfer';
-      case PaymentMethod.upi:
-        return 'UPI';
-      case PaymentMethod.other:
-        return 'Other';
-    }
-  }
 }
 
 class _SummaryCard extends StatelessWidget {
