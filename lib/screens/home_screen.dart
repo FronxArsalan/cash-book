@@ -6,6 +6,7 @@ import '../services/settings_service.dart';
 import '../widgets/transaction_list.dart';
 import 'add_transaction_screen.dart';
 import 'settings_screen.dart';
+import 'analysis_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,6 +21,15 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Cash Book'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.analytics_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (ctx) => const AnalysisScreen()),
+              );
+            },
+            tooltip: 'Analysis',
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
