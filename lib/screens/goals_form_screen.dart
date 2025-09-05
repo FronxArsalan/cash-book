@@ -154,7 +154,7 @@ class _GoalsFormScreenState extends State<GoalsFormScreen> {
               // Savings Target
               _buildGoalCard(
                 title: 'Monthly Savings Target',
-                icon: Icons.savings,
+                icon: Icons.account_balance_wallet,
                 color: Colors.blue,
                 controller: _savingsController,
                 currencySymbol: currencySymbol,

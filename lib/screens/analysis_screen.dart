@@ -633,7 +633,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
             _buildInsightItem(
               'Savings Rate',
               '${((totalIncome - totalExpense) / totalIncome * 100).toStringAsFixed(1)}%',
-              Icons.savings,
+              Icons.account_balance_wallet,
               Colors.blue,
             ),
           ],
@@ -684,7 +684,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                     'Savings Rate',
                     '${analysis.totalIncome > 0 ? ((analysis.netBalance / analysis.totalIncome) * 100).toStringAsFixed(1) : '0.0'}%',
                     Colors.green,
-                    Icons.savings,
+                    Icons.account_balance_wallet,
                   ),
                 ),
                 const SizedBox(width: 16),
