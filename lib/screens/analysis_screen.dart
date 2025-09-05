@@ -285,6 +285,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
       );
     }
 
+    // Calculate max values for proper scaling
+    final maxIncome = dailyData.map((d) => d.income).reduce((a, b) => a > b ? a : b);
+    final maxExpense = dailyData.map((d) => d.expense).reduce((a, b) => a > b ? a : b);
+    final maxValue = (maxIncome > maxExpense ? maxIncome : maxExpense) * 1.2;
+    
+    // Ensure we have a minimum value for the chart
+    final chartMaxY = maxValue > 0 ? maxValue : 100.0;
+    
 
     return Card(
       child: Padding(
@@ -302,6 +310,27 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
               child: LineChart(
                 LineChartData(
                   gridData: const FlGridData(show: true),
+                  maxY: chartMaxY,
+                  minY: 0,
+                  lineTouchData: LineTouchData(
+                    enabled: true,
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                        return touchedBarSpots.map((barSpot) {
+                          final isIncome = barSpot.barIndex == 0;
+                          final value = barSpot.y;
+                          final date = dailyData[barSpot.x.toInt()].date;
+                          return LineTooltipItem(
+                            '${isIncome ? 'Income' : 'Expense'}\n${settingsService.currencySymbol} ${value.toStringAsFixed(2)}\n${DateFormat('MMM dd, yyyy').format(date)}',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        }).toList();
+                      },
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     show: true,
                     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -312,9 +341,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index >= 0 && index < dailyData.length) {
-                            return Text(
-                              DateFormat('MMM dd').format(dailyData[index].date),
-                              style: const TextStyle(fontSize: 10),
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                DateFormat('MMM dd').format(dailyData[index].date),
+                                style: const TextStyle(fontSize: 10),
+                              ),
                             );
                           }
                           return const Text('');
@@ -342,7 +374,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                       isCurved: true,
                       color: Colors.green,
                       barWidth: 3,
-                      dotData: const FlDotData(show: false),
+                      dotData: const FlDotData(show: true),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: Colors.green.withOpacity(0.1),
+                      ),
                     ),
                     LineChartBarData(
                       spots: dailyData.asMap().entries.map((entry) {
@@ -351,7 +387,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                       isCurved: true,
                       color: Colors.red,
                       barWidth: 3,
-                      dotData: const FlDotData(show: false),
+                      dotData: const FlDotData(show: true),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: Colors.red.withOpacity(0.1),
+                      ),
                     ),
                   ],
                 ),
