@@ -5,7 +5,9 @@ import 'package:fl_chart/fl_chart.dart';
 
 import '../services/transaction_service.dart';
 import '../services/settings_service.dart';
+import '../services/goals_service.dart';
 import '../models/transaction.dart';
+import 'goals_form_screen.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
@@ -23,6 +25,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _initializeGoals();
+  }
+
+  Future<void> _initializeGoals() async {
+    final goalsService = Provider.of<GoalsService>(context, listen: false);
+    await goalsService.initialize();
   }
 
   @override
@@ -697,43 +705,65 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
   }
 
   Widget _buildFinancialGoals(AnalysisData analysis, SettingsService settingsService) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Financial Goals',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    return Consumer<GoalsService>(
+      builder: (context, goalsService, child) {
+        final goals = goalsService.goals;
+        
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Financial Goals',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const GoalsFormScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.edit),
+                      tooltip: 'Edit Goals',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildGoalItem(
+                  'Monthly Income Target',
+                  '${settingsService.currencySymbol} ${NumberFormat('#,###').format(goals.monthlyIncomeTarget)}',
+                  analysis.totalIncome,
+                  goals.monthlyIncomeTarget,
+                  Colors.green,
+                ),
+                const SizedBox(height: 12),
+                _buildGoalItem(
+                  'Monthly Expense Limit',
+                  '${settingsService.currencySymbol} ${NumberFormat('#,###').format(goals.monthlyExpenseLimit)}',
+                  analysis.totalExpense,
+                  goals.monthlyExpenseLimit,
+                  Colors.red,
+                ),
+                const SizedBox(height: 12),
+                _buildGoalItem(
+                  'Savings Target',
+                  '${settingsService.currencySymbol} ${NumberFormat('#,###').format(goals.savingsTarget)}',
+                  analysis.netBalance,
+                  goals.savingsTarget,
+                  Colors.blue,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _buildGoalItem(
-              'Monthly Income Target',
-              '${settingsService.currencySymbol} 50,000',
-              analysis.totalIncome,
-              50000,
-              Colors.green,
-            ),
-            const SizedBox(height: 12),
-            _buildGoalItem(
-              'Monthly Expense Limit',
-              '${settingsService.currencySymbol} 30,000',
-              analysis.totalExpense,
-              30000,
-              Colors.red,
-            ),
-            const SizedBox(height: 12),
-            _buildGoalItem(
-              'Savings Target',
-              '${settingsService.currencySymbol} 20,000',
-              analysis.netBalance,
-              20000,
-              Colors.blue,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

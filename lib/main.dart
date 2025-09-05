@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/transaction_service.dart';
 import 'services/settings_service.dart';
+import 'services/goals_service.dart';
 import 'services/database_service.dart';
 import 'theme/app_theme.dart';
 
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (ctx) => TransactionService()),
         ChangeNotifierProvider(create: (ctx) => SettingsService()),
+        ChangeNotifierProvider(create: (ctx) => GoalsService()),
       ],
       child: MaterialApp(
         title: 'Cash Book',

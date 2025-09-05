@@ -1,15 +1,18 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import '../models/transaction.dart';
+import '../models/financial_goals.dart';
 
 class DatabaseService {
   static const String _transactionsBoxName = 'transactions';
   static const String _settingsBoxName = 'settings';
   static const String _usersBoxName = 'users';
+  static const String _goalsBoxName = 'goals';
 
   static Box<Transaction>? _transactionsBox;
   static Box<Map>? _settingsBox;
   static Box<Map>? _usersBox;
+  static Box<FinancialGoals>? _goalsBox;
 
   // Initialize Hive and open boxes
   static Future<void> initialize() async {
@@ -24,11 +27,13 @@ class DatabaseService {
       Hive.registerAdapter(TransactionAdapter());
       Hive.registerAdapter(TransactionTypeAdapter());
       Hive.registerAdapter(PaymentMethodAdapter());
+      Hive.registerAdapter(FinancialGoalsAdapter());
 
       // Open boxes
       _transactionsBox = await Hive.openBox<Transaction>(_transactionsBoxName);
       _settingsBox = await Hive.openBox<Map>(_settingsBoxName);
       _usersBox = await Hive.openBox<Map>(_usersBoxName);
+      _goalsBox = await Hive.openBox<FinancialGoals>(_goalsBoxName);
 
       // Initialize default settings if not exists
       await _initializeDefaultSettings();
@@ -38,6 +43,7 @@ class DatabaseService {
         print('📊 Transactions: ${_transactionsBox!.length}');
         print('⚙️ Settings: ${_settingsBox!.length}');
         print('👥 Users: ${_usersBox!.length}');
+        print('🎯 Goals: ${_goalsBox!.length}');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -147,6 +153,29 @@ class DatabaseService {
     return _settingsBox!.watch().map((_) => getAllSettings());
   }
 
+  // Financial Goals operations
+  static Future<void> saveFinancialGoals(FinancialGoals goals) async {
+    try {
+      await _goalsBox!.put('current_goals', goals);
+      if (kDebugMode) {
+        print('✅ Financial goals saved');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error saving financial goals: $e');
+      }
+      rethrow;
+    }
+  }
+
+  static FinancialGoals? getFinancialGoals() {
+    return _goalsBox!.get('current_goals');
+  }
+
+  static Stream<FinancialGoals?> watchFinancialGoals() {
+    return _goalsBox!.watch().map((_) => getFinancialGoals());
+  }
+
   // User operations (simple local user management)
   static Future<void> createUser(String username, String password) async {
     try {
@@ -217,6 +246,7 @@ class DatabaseService {
       await _transactionsBox!.clear();
       await _settingsBox!.clear();
       await _usersBox!.clear();
+      await _goalsBox!.clear();
       await _initializeDefaultSettings();
       if (kDebugMode) {
         print('✅ All data cleared');
@@ -234,6 +264,7 @@ class DatabaseService {
       await _transactionsBox?.close();
       await _settingsBox?.close();
       await _usersBox?.close();
+      await _goalsBox?.close();
       if (kDebugMode) {
         print('✅ Database closed');
       }
@@ -250,6 +281,7 @@ class DatabaseService {
       'transactions': _transactionsBox?.length ?? 0,
       'settings': _settingsBox?.length ?? 0,
       'users': _usersBox?.length ?? 0,
+      'goals': _goalsBox?.length ?? 0,
     };
   }
 }
