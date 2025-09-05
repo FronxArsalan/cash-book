@@ -450,10 +450,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
       );
     }
 
-    // Calculate total expenses for percentage calculation
+    // Calculate total expenses and income for percentage calculation
     final totalExpenses = titleData.values.where((amount) => amount < 0).fold(0.0, (sum, amount) => sum + amount.abs());
     final totalIncome = titleData.values.where((amount) => amount > 0).fold(0.0, (sum, amount) => sum + amount);
-    final totalAmount = totalExpenses + totalIncome;
 
     // Sort by absolute amount (descending)
     final sortedTitles = titleData.entries.toList()
@@ -471,9 +470,13 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
             ),
             const SizedBox(height: 16),
             ...sortedTitles.map((entry) {
-              final percentage = totalAmount > 0 ? (entry.value.abs() / totalAmount) * 100 : 0.0;
               final isExpense = entry.value < 0;
               final displayAmount = entry.value.abs();
+              
+              // Calculate percentage based on whether it's expense or income
+              final percentage = isExpense 
+                  ? (totalExpenses > 0 ? (displayAmount / totalExpenses) * 100 : 0.0)
+                  : (totalIncome > 0 ? (displayAmount / totalIncome) * 100 : 0.0);
               
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -885,7 +888,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
     final titleMap = <String, double>{};
 
     for (final transaction in transactions) {
-      titleMap[transaction.title] = (titleMap[transaction.title] ?? 0) + transaction.amount;
+      // For expenses, store as negative values
+      // For income, store as positive values
+      final amount = transaction.type == TransactionType.expense 
+          ? -transaction.amount 
+          : transaction.amount;
+      titleMap[transaction.title] = (titleMap[transaction.title] ?? 0) + amount;
     }
 
     return titleMap;
