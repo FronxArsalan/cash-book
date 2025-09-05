@@ -25,14 +25,30 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => SettingsService()),
         ChangeNotifierProvider(create: (ctx) => GoalsService()),
       ],
-      child: MaterialApp(
-        title: 'Cash Book',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system, // Or ThemeMode.light, ThemeMode.dark
-        home: const SplashScreen(),
-        debugShowCheckedModeBanner: false,
+      child: Consumer<SettingsService>(
+        builder: (context, settingsService, child) {
+          return MaterialApp(
+            title: 'Cash Book',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: _getThemeMode(settingsService.theme),
+            home: const SplashScreen(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
+  }
+
+  ThemeMode _getThemeMode(String theme) {
+    switch (theme) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      case 'system':
+      default:
+        return ThemeMode.system;
+    }
   }
 }

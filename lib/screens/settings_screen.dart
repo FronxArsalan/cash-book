@@ -3,9 +3,14 @@ import 'package:provider/provider.dart';
 
 import '../services/settings_service.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
@@ -47,6 +52,8 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   _buildCurrencySetting(context, settingsService, currencies, isCurrentSymbolInList),
+                  const SizedBox(height: 24),
+                  _buildThemeSetting(context, settingsService),
                 ],
               ),
             ),
@@ -130,5 +137,133 @@ class SettingsScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildThemeSetting(BuildContext context, SettingsService settingsService) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Theme',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              _buildThemeOption(
+                context,
+                settingsService,
+                'light',
+                'Light',
+                Icons.light_mode,
+              ),
+              const Divider(height: 1),
+              _buildThemeOption(
+                context,
+                settingsService,
+                'dark',
+                'Dark',
+                Icons.dark_mode,
+              ),
+              const Divider(height: 1),
+              _buildThemeOption(
+                context,
+                settingsService,
+                'system',
+                'System',
+                Icons.brightness_auto,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    SettingsService settingsService,
+    String value,
+    String title,
+    IconData icon,
+  ) {
+    final isSelected = settingsService.theme == value;
+    
+    return InkWell(
+      onTap: () async {
+        await _updateTheme(context, settingsService, value, title);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              : Colors.transparent,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected 
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: isSelected 
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              )
+            else
+              Icon(
+                Icons.radio_button_unchecked,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateTheme(BuildContext context, SettingsService settingsService, String newTheme, String themeName) async {
+    try {
+      await settingsService.setTheme(newTheme);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Theme changed to $themeName'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${settingsService.error ?? e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
