@@ -429,7 +429,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
           color: color,
         ),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
       ],
     );
   }
@@ -491,7 +491,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
           child: Center(
             child: Text(
               'No transaction data available',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
           ),
         ),
@@ -531,9 +533,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Colors.grey[50],
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,9 +546,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                           Expanded(
                             child: Text(
                               entry.key,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -567,7 +570,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> with TickerProviderStat
                           Expanded(
                             child: LinearProgressIndicator(
                               value: percentage / 100,
-                              backgroundColor: Colors.grey[300],
+                              backgroundColor: Theme.of(context).colorScheme.outline.withOpacity(0.2),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 isExpense ? Colors.red : Colors.green,
                               ),
